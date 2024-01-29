@@ -2,7 +2,6 @@
 
 #include "framework.h"
 #include "mesh.h"
-#include <glm/glm.hpp>
 #include "camera.h"
 #include "image.h"
 #include "color.h"
@@ -10,19 +9,19 @@
 class Entity {
 private:
 	Mesh mesh;
-	glm::mat4 Modelmatrix;
+	Matrix44 Modelmatrix;
 public:
     Entity();  //Identity matrix constructor
 
-    Entity(const glm::mat4& Modelmatrix);// Constructor with a  model matrix
+    Entity(const Matrix44& Modelmatrix);// Constructor with a  model matrix
 
-    Entity(const glm::mat4& Modelmatrix, const Mesh& mesh);// Constructor with model matrix and mesh
+    Entity(const Matrix44& Modelmatrix, const Mesh& mesh);// Constructor with model matrix and mesh
 
 
-    void SetModelMatrix(const glm::mat4& Modelmatrix);
+    void SetModelMatrix(const Matrix44& Modelmatrix);
     void SetMesh(const Mesh& mesh);
 
-    const glm::mat4& GetModelMatrix() const;
+    const Matrix44& GetModelMatrix() const;
     const Mesh& GetMesh() const;
 
     void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor);
