@@ -1,18 +1,17 @@
 #include "entity.h"
-#include <glm/glm.hpp>
 #include "camera.h"
 #include "image.h"
 #include "color.h"
 #include "framework.h"
 
 
-Entity::Entity() : Modelmatrix(glm::mat4(1.0f)), mesh() {}
+Entity::Entity() : Modelmatrix(Matrix44(1.0f)), mesh() {}
 
-Entity::Entity(const glm::mat4& Modelmatrix) : Modelmatrix(Modelmatrix), mesh() {}
+Entity::Entity(const Matrix44& Modelmatrix) : Modelmatrix(Modelmatrix), mesh() {}
 
-Entity::Entity(const glm::mat4& Modelmatrix, const Mesh& mesh) : Modelmatrix(Modelmatrix), mesh(mesh) {}
+Entity::Entity(const Matrix44& Modelmatrix, const Mesh& mesh) : Modelmatrix(Modelmatrix), mesh(mesh) {}
 
-void Entity::SetModelMatrix(const glm::mat4& Modelmatrix) {
+void Entity::SetModelMatrix(const Matrix44& Modelmatrix) {
     this->Modelmatrix = Modelmatrix;
 }
 
@@ -20,7 +19,7 @@ void Entity::SetMesh(const Mesh& mesh) {
     this->mesh = mesh;
 }
 
-const glm::mat4& Entity::GetModelMatrix() const {
+const Matrix444& Entity::GetModelMatrix() const {
     return Modelmatrix;
 }
 
@@ -37,9 +36,9 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
         Vector3 v2 = vertices[i + 2];
 
         // Transform vertices from local space to world space
-        v0 = glm::vec3(GetModelMatrix() * glm::vec4(v0, 1.0f));
-        v1 = glm::vec3(GetModelMatrix() * glm::vec4(v1, 1.0f));
-        v2 = glm::vec3(GetModelMatrix() * glm::vec4(v2, 1.0f));
+        v0 = glm::vec3(GetModelMatrix() * Matrix44(v0, 1.0f));
+        v1 = glm::vec3(GetModelMatrix() * Matrix44(v1, 1.0f));
+        v2 = glm::vec3(GetModelMatrix() * Matrix44(v2, 1.0f));
 
         // Project vertices to clip space
         bool negZ0, negZ1, negZ2;
