@@ -36,15 +36,15 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
         Vector3 v2 = vertices[i + 2];
 
         // Transform vertices from local space to world space
-        v0 = glm::vec3(GetModelMatrix() * Matrix44(v0, 1.0f));
-        v1 = glm::vec3(GetModelMatrix() * Matrix44(v1, 1.0f));
-        v2 = glm::vec3(GetModelMatrix() * Matrix44(v2, 1.0f));
+        v0 = Vector3(GetModelMatrix() * Matrix44(v0, 1.0f));
+        v1 = Vector3(GetModelMatrix() * Matrix44(v1, 1.0f));
+        v2 = Vector3(GetModelMatrix() * Matrix44(v2, 1.0f));
 
         // Project vertices to clip space
         bool negZ0, negZ1, negZ2;
-        glm::vec4 clipPos0 = camera->ProjectVector(v0, negZ0);
-        glm::vec4 clipPos1 = camera->ProjectVector(v1, negZ1);
-        glm::vec4 clipPos2 = camera->ProjectVector(v2, negZ2);
+        Vector4 clipPos0 = camera->ProjectVector(v0, negZ0);
+        Vector4 clipPos1 = camera->ProjectVector(v1, negZ1);
+        Vector4 clipPos2 = camera->ProjectVector(v2, negZ2);
 
         // Check if any vertex is outside the camera frustum
         if (negZ0 || negZ1 || negZ2) {
@@ -53,13 +53,13 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
         }
 
         // Convert clip space positions to screen space
-        glm::vec3 screenPos0 = glm::vec3((clipPos0.x + 1.0f) * 0.5f * framebuffer->GetWidth(),
+        Vector3 screenPos0 = Vector3((clipPos0.x + 1.0f) * 0.5f * framebuffer->GetWidth(),
             (1.0f - clipPos0.y) * 0.5f * framebuffer->GetHeight(),
             clipPos0.z);
-        glm::vec3 screenPos1 = glm::vec3((clipPos1.x + 1.0f) * 0.5f * framebuffer->GetWidth(),
+        Vector3 screenPos1 = Vector3((clipPos1.x + 1.0f) * 0.5f * framebuffer->GetWidth(),
             (1.0f - clipPos1.y) * 0.5f * framebuffer->GetHeight(),
             clipPos1.z);
-        glm::vec3 screenPos2 = glm::vec3((clipPos2.x + 1.0f) * 0.5f * framebuffer->GetWidth(),
+        Vector3 screenPos2 = Vector3((clipPos2.x + 1.0f) * 0.5f * framebuffer->GetWidth(),
             (1.0f - clipPos2.y) * 0.5f * framebuffer->GetHeight(),
             clipPos2.z);
 
