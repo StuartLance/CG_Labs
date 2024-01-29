@@ -423,39 +423,50 @@ void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table
 }
 
 
-void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
-	DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
+void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor)
+{
+    // Create the Active Edges Table (AET)
+    std::vector<Cell> aet(width);
+
+    // Sort the vertices by y-coordinate
+    Vector2 vertices[3] = { p0, p1, p2 };
+    std::sort(vertices, vertices + 3, [](const Vector2& a, const Vector2& b) { return a.y < b.y; });
+
+    // Initialize the AET with the edges of the triangle
+    for (int i = 0; i < 3; ++i)
+    {
+        int nextIndex = (i + 1) % 3;
+        int y0 = static_cast<int>(vertices[i].y);
+        int y1 = static_cast<int>(vertices[nextIndex].y);
+
+        if (y0 != y1) // Avoid horizontal edges
+        {
+            int x0 = static_cast<int>(vertices[i].x);
+            int x1 = static_cast<int>(vertices[nextIndex].x);
+
+            // Use DDA to update the AET for each edge
+            ScanLineDDA(x0, y0, x1, y1, aet);
+        }
+    }
+
+    // Fill the triangle
+    if (isFilled)
+    {
+        for (int y = static_cast<int>(vertices[0].y); y <= static_cast<int>(vertices[2].y); ++y)
+        {
+            for (int x = aet[y].minx; x <= aet[y].maxx; ++x)
+            {
+                SetPixel(x, y, fillColor);
+            }
+        }
+    }
+
+    // Draw the border of the triangle
+    DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
 	DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
 	DrawLineDDA(p2.x, p2.y, p0.x, p0.y, borderColor);
-	if (isFilled) {
-		//Vector made with floats, cast to ints and compare
-		int h_max = std::max(static_cast<int>(p0.y), static_cast<int>(p1.y));
-		h_max = std::max(h_max, static_cast<int>(p2.y));
-
-		int h_min = std::min(static_cast<int>(p0.y), static_cast<int>(p1.y));
-		h_min = std::min(h_min, static_cast<int>(p2.y));
-
-		//Height of raster box
-		int h = h_max - h_min;
-
-		//Create vector of Cells of size h
-		std::vector<Cell> table(h);
-
-		//Scans the three vectors
-		ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
-		ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
-		ScanLineDDA(p2.x, p2.y, p0.x, p0.y, table);
-
-		// From 0 to height
-		for (int y = 0; y < table.size(); y++) {
-			// From min to max, of x at height y
-			for (int x = table[y].xMin; x < table[y].xMax; x++) {
-				// Set the pixel to the fill colour
- 				SetPixelSafe(x, y + h_min, fillColor);
-			}
-		}
-	}
 }
+
 
 void Image::FillCircle(int x, int y, int rOuter, int rInner, const Color& fillColor) {
 
