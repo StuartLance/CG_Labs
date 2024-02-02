@@ -221,7 +221,7 @@ class Matrix44
 };
 
 // Operators, they are our friends
-// Matrix44 operator * ( const Matrix44& a, const Matrix44& b );
+//Matrix44 operator * ( const Matrix44& a, const Matrix44& b );
 Vector3 operator * (const Matrix44& matrix, const Vector3& v);
 Vector3 operator + (const Vector3& a, const Vector3& b);
 Vector3 operator - (const Vector3& a, const Vector3& b);

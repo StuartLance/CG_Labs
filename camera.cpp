@@ -81,45 +81,94 @@ void Camera::LookAt(const Vector3& eye, const Vector3& center, const Vector3& up
 	UpdateViewMatrix();
 }
 
+
 void Camera::UpdateViewMatrix()
 {
 	// Reset Matrix (Identity)
 	view_matrix.SetIdentity();
 
 	// Comment this line to create your own projection matrix!
-	SetExampleViewMatrix();	// Must be commented out in order to use a matrix properly
+	//SetExampleViewMatrix();
 
 	// Remember how to fill a Matrix4x4 (check framework slides)
 	// Careful with the order of matrix multiplications, and be sure to use normalized vectors!
-	
-	// Create the view matrix rotation
-	// ...
-	// view_matrix.M[3][3] = 1.0;
+	Vector3 F, S, T; //Front/forward, Side/right, Top/up vectors
 
-	// Translate view matrix
-	// ...
+
+	// Create the view matrix rotation. ALL FROM THEORY
+	//View matrix rotation
+	F = center - eye;
+	F.Normalize(); //Normalize front vector
+
+	S = up.Cross(F); //Side vector using cross product (UP x Front)
+	S.Normalize(); //Normalize side vector
+
+	T = F.Cross(S); //Top vector using cross product (Front x Side)
+	// No need to normalize top vector, as it is already orthogonal to the other two normalised vectors
+
+
+	//Fill view matrix with vectors F, S, T
+	view_matrix.M[0][0] = S.x;
+	view_matrix.M[1][0] = S.y;
+	view_matrix.M[2][0] = S.z;
+
+	view_matrix.M[0][1] = T.x;
+	view_matrix.M[1][1] = T.y;
+	view_matrix.M[2][1] = T.z;
+
+	// Use negative Front vector from slides. Keep in mind that the Forward vector is negated because in some graphics APIs z is inverted (OpenGL) (right-hand system)
+	view_matrix.M[0][2] = -F.x;
+	view_matrix.M[1][2] = -F.y;
+	view_matrix.M[2][2] = -F.z;
+
+	// Translate view matrix. Use local as it is in the camera space. Lab 2 doc, 3.3
+	view_matrix.TranslateLocal(-eye.x, -eye.y, -eye.z);
 
 	UpdateViewProjectionMatrix();
 }
 
-// Create a projection matrix
+
 void Camera::UpdateProjectionMatrix()
 {
 	// Reset Matrix (Identity)
 	projection_matrix.SetIdentity();
 
 	// Comment this line to create your own projection matrix!
-	SetExampleProjectionMatrix();
+	//SetExampleProjectionMatrix(); // No longer needed
 
 	// Remember how to fill a Matrix4x4 (check framework slides)
-	
-	if (type == PERSPECTIVE) {
-		// projection_matrix.M[2][3] = -1;
-		// ...
+
+    /**
+     * Calculates the projection matrix for a perspective camera.
+     * 
+     * fov: The field of view angle in degrees.
+     * aspect: The aspect ratio of the window
+     * near_plane: The distance to the near clipping plane.
+     * far_plane: The distance to the far clipping plane.
+     */
+    if (type == PERSPECTIVE) {
+		// CHECK LAB 2 SLIDES, PAGE 28 -> PERSPECTIVE PROJECTION MATRIX
+        float f = 1 / tan(this->fov * DEG2RAD / 2); // Angles in degrees, convert to radians
+
+        projection_matrix.M[0][0] = f / this->aspect;
+        projection_matrix.M[1][1] = f;
+        projection_matrix.M[2][2] = (this->far_plane + this->near_plane) / (this->near_plane - this->far_plane);
+        projection_matrix.M[3][2] = 2 * (this->far_plane * this->near_plane) / (this->near_plane - this->far_plane);
+		projection_matrix.M[2][3] = -1;
+        projection_matrix.M[3][3] = 0;
 	}
 	else if (type == ORTHOGRAPHIC) {
-		// ...
-	} 
+		// CHECK LAB 2 SLIDES, PAGE 26 -> OTHOGRAPHIC PROJECTION MATRIX
+		// NEAR AND FAR ARE REQUIREd DUE TO COMPUTATIONAL REASONS
+		
+		projection_matrix.M[0][0] = 2 / (this->right - this->left);
+		projection_matrix.M[1][1] = 2 / (this->top - this->bottom);
+		projection_matrix.M[2][2] = -2 / (this->far_plane - this->near_plane);
+		projection_matrix.M[0][3] = -((this->right + this->left) / (this->right - this->left));
+		projection_matrix.M[1][3] = -((this->top + this->bottom) / (this->top - this->bottom));
+		projection_matrix.M[2][3] = -((this->far_plane + this->near_plane) / (this->far_plane - this->near_plane));
+	}
+
 
 	UpdateViewProjectionMatrix();
 }

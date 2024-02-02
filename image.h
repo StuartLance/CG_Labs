@@ -38,12 +38,14 @@ struct Particle {
 class Image
 {
 private:
+	/*
 	static const int MAX_PARTICLES = 100;
 	Particle particles[MAX_PARTICLES];
 
 	void RenderParticle(Image* framebuffer, const Particle& particle);
 	void ResetParticle(Particle& particle);
 	bool IsWithinBounds(int x, int y) const;
+	*/
 
 	// A general struct to store all the information about a TGA file
 	typedef struct sTGAInfo {
@@ -61,10 +63,11 @@ public:
 
 	Image(int imageWidth, int imageHeight);
 
+	/*
 	void InitializeParticles();
 	void RenderParticles(Image* framebuffer);
 	void UpdateParticles(float dt);
-	
+	*/
 
 	Color* pixels;
 

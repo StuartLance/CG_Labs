@@ -7,9 +7,18 @@
 #include "main/includes.h"
 #include "framework.h"
 #include "image.h"
+#include "mesh.h"
+#include "entity.h"
+#include "camera.h"
+
+#define NEAR 1
+#define FAR 2
+#define FOV 3
 
 class Application
 {
+private:
+	
 public:
 
 	// Window
@@ -20,9 +29,22 @@ public:
 
 	float time;
 
-	int key;
-	int borderWidth;
+	int cam = 1;
 
+	int current_property = 0;
+	//Declare 3 entities and 3 meshes
+
+	Entity Lee; // Declare entity as a member variable
+	Mesh meshLee; // Declare mesh as a member variable
+
+	Entity Cleo; // Declare entity as a member variable
+	Mesh meshCleo; // Declare mesh as a member variable
+
+	Entity Anna; // Declare entity as a member variable
+	Mesh meshAnna; // Declare mesh as a member variable
+
+
+	Camera camera; // Declare camera as a member variable
 
 	// Input
 	const Uint8* keystate;
