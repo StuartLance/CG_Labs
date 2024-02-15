@@ -429,56 +429,40 @@ To do that, create another method in the Image class that draws a filled triangl
 void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2);
 */
 
-void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2) {
-	//Create table
-	std::vector<Cell> table(height);
-	//Update table with the min and max x values of the triangle
-	ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
-	ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
-	ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* zBuffer) {
+    std::vector<Cell> table(height);
+    ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
+    ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
+    ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
 
-	//m transforms the barycentric coordinates to the screen space
-	Matrix44 m;
-	// USE ROW MAJOR, NOT COLUMN MAJOR!!!!
-	m.M[0][0] = p0.x; m.M[1][0] = p1.x; m.M[2][0] = p2.x;
-	m.M[0][1] = p0.y; m.M[1][1] = p1.y; m.M[2][1] = p2.y;
-	m.M[0][2] = 1; m.M[1][2] = 1; m.M[2][2] = 1;
+    Matrix44 m;
+    m.M[0][0] = p0.x; m.M[1][0] = p1.x; m.M[2][0] = p2.x;
+    m.M[0][1] = p0.y; m.M[1][1] = p1.y; m.M[2][1] = p2.y;
+    m.M[0][2] = 1; m.M[1][2] = 1; m.M[2][2] = 1;
+    m.Inverse();
 
-	// Inverse gives the barycentric coordinates
-	m.Inverse();
+    Vector3 bCoords;
+    Color c;
 
-	Vector3 bCoords;
-	Color c;
-
-	//Paint the triangle
-	for (int i = 0; i < table.size(); i++) {
-		if (table[i].xMin <= table[i].xMax) {
-			//Paint each row of the triangle from xMIn to xMax (included)
-			for (int j = table[i].xMin; j <= table[i].xMax; j++) {
-				//Calculate the barycentric coordinates
-				// REMEMBER i is the y coordinate and j is the x coordinate
-				bCoords = m * Vector3(j, i, 1);
-
-				//Clamp the barycentric coordinates to avoid errors
-				bCoords.Clamp(0.0f, 1.0f);
-
-				// set z of the barycentric coordinates to 1-sum of others, so they add to 1
-				bCoords.z = 1 - bCoords.x - bCoords.y;
-
-				//Should be 1
-				float sum = bCoords.x + bCoords.y + bCoords.z;
-				//Normalize the barycentric coordinates
-				bCoords = bCoords / sum;
-
-				// Interpolate the color
-				c = c0 * bCoords.x + c1 * bCoords.y + c2 * bCoords.z;
-
-				//Set the pixel to the calculated color
-				SetPixelSafe(j, i, c);
-			}
-		}
-	}
+    for (int i = 0; i < table.size(); i++) {
+        if (table[i].xMin <= table[i].xMax) {
+            for (int j = table[i].xMin; j <= table[i].xMax; j++) {
+                bCoords = m * Vector3(j, i, 1);
+                bCoords.Clamp(0.0f, 1.0f);
+                bCoords.z = 1 - bCoords.x - bCoords.y;
+                float sum = bCoords.x + bCoords.y + bCoords.z;
+                bCoords = bCoords / sum;
+                c = c0 * bCoords.x + c1 * bCoords.y + c2 * bCoords.z;
+                float z = bCoords.x * p0.z + bCoords.y * p1.z + bCoords.z * p2.z;
+                if (zBuffer->GetPixel(j, i) < z) {
+                    zBuffer->SetPixel(j, i, z);
+                    SetPixelSafe(j, i, c);
+                }
+            }
+        }
+    }
 }
+
 
 /*		SCRAP THIS
 //create BarycentricCoordinates function here
