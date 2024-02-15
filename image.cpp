@@ -377,8 +377,140 @@ void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,
 
 }
 
+// Scanline algorithm. Given by Pablo Luis. Review and understand it.
 
+void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table) {
 
+	float dx = x1 - x0;
+	float dy = y1 - y0;
+
+	float d = std::max(abs(dx), abs(dy));
+	Vector2 v = Vector2(dx / d, dy / d);
+	float x = x0, y = y0;
+
+	for (float i = 0; i <= d; i++) {
+		//Update the table only if the calculated y coordinates are within the range of the image
+		if (y >= 0 && y < table.size()) {
+			table[floor(y)].xMin = std::min((int)floor(x), table[floor(y)].xMin);
+			table[floor(y)].xMax = std::max((int)floor(x), table[floor(y)].xMax);
+		}
+		x += v.x;
+		y += v.y;
+	}
+}
+
+void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
+
+	if (isFilled) {
+		//Create table
+		std::vector<Cell> table(height);
+		//Update table with the min and max x values of the triangle
+		ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
+		ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
+		ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
+		//Paint the triangle
+		for (int i = 0; i < table.size(); i++) {
+			//Paint each row of the triangle from minx to maxx (included)
+			for (int j = table[i].xMin; j <= table[i].xMax; j++) {
+				SetPixelSafe(j, i, fillColor);
+			}
+		}
+	}
+
+	DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
+	DrawLineDDA(p0.x, p0.y, p2.x, p2.y, borderColor);
+	DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
+}
+
+/*The objective now is to draw the mesh interpolating 3 colors; assigned for each vertex of the triangle. 
+To do that, create another method in the Image class that draws a filled triangle but using barycentric interpolation between the colors of each vertex 
+(from now we are passing a Vector3 for each vertex, since we will use the Z value of the projected vertex soon)
+
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2);
+*/
+
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2) {
+	//Create table
+	std::vector<Cell> table(height);
+	//Update table with the min and max x values of the triangle
+	ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
+	ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
+	ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
+
+	//m transforms the barycentric coordinates to the screen space
+	Matrix44 m;
+	// USE ROW MAJOR, NOT COLUMN MAJOR!!!!
+	m.M[0][0] = p0.x; m.M[1][0] = p1.x; m.M[2][0] = p2.x;
+	m.M[0][1] = p0.y; m.M[1][1] = p1.y; m.M[2][1] = p2.y;
+	m.M[0][2] = 1; m.M[1][2] = 1; m.M[2][2] = 1;
+
+	// Inverse gives the barycentric coordinates
+	m.Inverse();
+
+	Vector3 bCoords;
+	Color c;
+
+	//Paint the triangle
+	for (int i = 0; i < table.size(); i++) {
+		if (table[i].xMin <= table[i].xMax) {
+			//Paint each row of the triangle from xMIn to xMax (included)
+			for (int j = table[i].xMin; j <= table[i].xMax; j++) {
+				//Calculate the barycentric coordinates
+				// REMEMBER i is the y coordinate and j is the x coordinate
+				bCoords = m * Vector3(j, i, 1);
+
+				//Clamp the barycentric coordinates to avoid errors
+				bCoords.Clamp(0.0f, 1.0f);
+
+				// set z of the barycentric coordinates to 1-sum of others, so they add to 1
+				bCoords.z = 1 - bCoords.x - bCoords.y;
+
+				//Should be 1
+				float sum = bCoords.x + bCoords.y + bCoords.z;
+				//Normalize the barycentric coordinates
+				bCoords = bCoords / sum;
+
+				// Interpolate the color
+				c = c0 * bCoords.x + c1 * bCoords.y + c2 * bCoords.z;
+
+				//Set the pixel to the calculated color
+				SetPixelSafe(j, i, c);
+			}
+		}
+	}
+}
+
+/*		SCRAP THIS
+//create BarycentricCoordinates function here
+
+Vector3 Image::BarycentricCoordinates(const Vector2& p, const Vector3& p0, const Vector3& p1, const Vector3& p2) {
+	//Calculate the area of the triangle, using Shoelace formula
+	float area = 0.5 * ((p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y));
+
+	//Make area positive
+	if (area < 0) area = -area;
+
+	//Calculate the barycentric coordinates
+	float u = 0.5 * ((p1.y - p2.y) * (p.x - p2.x) + (p2.x - p1.x) * (p.y - p2.y)) / area;
+	u = clamp(u, 0.0f, 1.0f);
+
+	float v = 0.5 * ((p2.y - p0.y) * (p.x - p2.x) + (p0.x - p2.x) * (p.y - p2.y)) / area;
+	v = clamp(v, 0.0f, 1.0f);
+
+	float w = 1 - u - v;
+	w = clamp(w, 0.0f, 1.0f);
+
+	//clamp coordinates to 0 and 1 to avoid errors, using clamp function
+	
+	
+	
+
+	return Vector3(u, v, w);
+}
+
+*/
+
+/*
 
 void Image::ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table) {
 	int step;
@@ -456,6 +588,7 @@ void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2
 		}
 	}
 }
+*/
 
 void Image::FillCircle(int x, int y, int rOuter, int rInner, const Color& fillColor) {
 
@@ -476,6 +609,7 @@ void Image::FillCircle(int x, int y, int rOuter, int rInner, const Color& fillCo
 		}
 	}
 }
+
 
 
 void Image::DrawCircle(int x, int y, int r, const Color& borderColor,
@@ -534,65 +668,6 @@ void Image::DrawCircle(int x, int y, int r, const Color& borderColor,
 	
 	
 }
-
-
-/*
-void Image::InitializeParticles() {
-	for (int i = 0; i < MAX_PARTICLES; ++i) {
-		particles[i].position = Vector2{ static_cast<float>(rand() % width), static_cast<float>(rand() % height) };
-		particles[i].velocity = Vector2{ 0.0f, static_cast<float>(rand() % 50) / 100.0f + 0.5f };
-		particles[i].color = Color{ rand() % 256, rand() % 256, rand() % 256 };
-		particles[i].acceleration = 0.0f;
-		particles[i].ttl = static_cast<float>(rand() % 100) / 50.0f;
-		particles[i].inactive = false;
-	}
-}
-
-void Image::RenderParticles(Image* framebuffer) {
-	for (int i = 0; i < MAX_PARTICLES; ++i) {
-		if (!particles[i].inactive) {
-			RenderParticle(framebuffer, particles[i]);
-		}
-	}
-}
-void Image::UpdateParticles(float dt) {
-	for (int i = 0; i < MAX_PARTICLES; ++i) {
-		if (!particles[i].inactive) {
-			particles[i].position.y -= particles[i].velocity.y * dt * 100;
-			particles[i].ttl -= dt;
-
-			if (particles[i].position.y < 0.0f) {
-				ResetParticle(particles[i]);
-			}
-		}
-	}
-}
-
-void Image::RenderParticle(Image* framebuffer, const Particle& particle) {
-	int x = static_cast<int>(particle.position.x);
-	int y = static_cast<int>(particle.position.y);
-
-	for (int dx = -1; dx <= 1; ++dx) {
-		for (int dy = -1; dy <= 1; ++dy) {
-			int px = x + dx;
-			int py = y + dy;
-
-			if (IsWithinBounds(px, py)) {
-				framebuffer->SetPixel(px, py, particle.color);
-			}
-		}
-	}
-}
-
-void Image::ResetParticle(Particle& particle) {
-	particle.position.y = height;
-	particle.ttl = static_cast<float>(rand() % 100) / 50.0f;
-}
-
-bool Image::IsWithinBounds(int x, int y) const {
-	return x >= 0 && x < width && y >= 0 && y < height;
-}
-*/
 
 #ifndef IGNORE_LAMBDAS
 

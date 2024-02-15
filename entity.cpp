@@ -48,8 +48,11 @@ void Entity::Scale(float x, float y, float z) {
 
 //Update entity with time
 void Entity::UpdateRotate(float seconds_elapsed) {
-    // Make the entity rotate on itself
+    // Make the entity rotate on y axis
     Rotate(seconds_elapsed * 10.0f, Vector3(0.0f, 1.0f, 0.0f));
+
+    // if rotate on own axis
+    //Rotate(seconds_elapsed * 10.0f, use y axis of entity here)
 }
 
 // update with translation, move forward and back to the start
@@ -64,7 +67,7 @@ void Entity::UpdateTranslate(float seconds_elapsed) {
         position = 10.0f - position;
     }
 
-    // Translate the entity along the z-axis
+    // Translate the entity along the x-axis
     Translate(position, 0.0f, 0.0f);
 }
 
@@ -158,8 +161,17 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
         Vector3 screenPos2 = Vector3((clipPos2.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + clipPos2.y) * 0.5f * (framebuffer->height - 1), clipPos2.z);
 
 
-        framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
-        framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
-        framebuffer->DrawLineDDA(screenPos2.x, screenPos2.y, screenPos0.x, screenPos0.y, wireframeColor);
+        //Chnage wireframe to filled triangle
+        //framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
+        //framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
+        //framebuffer->DrawLineDDA(screenPos2.x, screenPos2.y, screenPos0.x, screenPos0.y, wireframeColor);
+
+        // Draw the filled triangle
+        //framebuffer->DrawTriangle(screenPos0.GetVector2(), screenPos1.GetVector2(), screenPos2.GetVector2(), wireframeColor, true, wireframeColor);
+
+        // Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
+        framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE);
+
+
     }
 }

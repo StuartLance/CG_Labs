@@ -122,6 +122,10 @@ public:
 
 	void DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor);
 
+	void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2);
+
+	Vector3 BarycentricCoordinates(const Vector2& p, const Vector3& p0, const Vector3& p1, const Vector3& p2);
+
 
 	void FillCircle(int x, int y, int rOuter, int rInner, const Color& fillColor);
 	void DrawCircle(int x, int y, int r, const Color& borderColor,

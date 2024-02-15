@@ -89,8 +89,8 @@ void Application::Render(void)
 
 	// Render the entities
 	Lee.Render(&framebuffer, &camera, Color::WHITE);
-	Cleo.Render(&framebuffer, &camera, Color::RED);
-	Anna.Render(&framebuffer, &camera, Color::BLUE);
+	//Cleo.Render(&framebuffer, &camera, Color::RED);
+	//Anna.Render(&framebuffer, &camera, Color::BLUE);
 
 	
 
@@ -100,18 +100,15 @@ void Application::Render(void)
 // Called after render
 void Application::Update(float seconds_elapsed)
 {
-	// Update the entities with different methods
-	if (keystate[SDL_SCANCODE_SPACE]) {
-		Lee.UpdateCircle(seconds_elapsed);
-	}
-	Lee.UpdateRotate(0.5*seconds_elapsed);
-	Cleo.UpdateTranslate(seconds_elapsed);
-	Anna.UpdateScale(0.1*seconds_elapsed);
+	
+	//Lee.UpdateRotate(0.5*seconds_elapsed);
+	//Cleo.UpdateTranslate(seconds_elapsed);
+	//Anna.UpdateScale(0.1*seconds_elapsed);
 
 
 	// Update the camera
-	if (cam ==1) camera.SetPerspective(camera.fov, camera.aspect, camera.near_plane, camera.far_plane);
-	else if (cam == 0) camera.SetOrthographic(camera.left, camera.right, camera.top, camera.bottom, camera.near_plane, camera.far_plane);
+	//if (cam ==1) camera.SetPerspective(camera.fov, camera.aspect, camera.near_plane, camera.far_plane);
+	//else if (cam == 0) camera.SetOrthographic(camera.left, camera.right, camera.top, camera.bottom, camera.near_plane, camera.far_plane);
 
 }
 
@@ -186,27 +183,16 @@ void Application::OnMouseButtonUp( SDL_MouseButtonEvent event )
 void Application::OnMouseMove(SDL_MouseButtonEvent event)
 {	
 	if (event.button == SDL_BUTTON_LEFT) {
-		// Tweak multiples to get the right amount of rotation
-		this->camera.Rotate(DEG2RAD, Vector3(0.3*mouse_delta.y, 0.3*mouse_delta.x, 0));
+		this->camera.Orbit(-mouse_delta.x * 0.01, Vector3::UP);
+		this->camera.Orbit(-mouse_delta.y * 0.01, Vector3::RIGHT);
 	}
 	
 }
 
 void Application::OnWheel(SDL_MouseWheelEvent event)
 {
-	// NOT WORKING YET
-	float dy = event.preciseX;
-
-	if (this->camera.type == 1) { // type 1 is perspective
-		this->camera.fov -= dy * 1.5 * DEG2RAD;
-
-		// limit the fov to a reasonable value
-		this->camera.fov = clamp(this->camera.fov, 10.0f, 179.0f);
-	}
-	else { // type 0 is orthographic
-		this->camera.right -=dy * 0.05;
-		this->camera.right = clamp(this->camera.right, 0.1f, 100.0f);
-	}
+	float dy = event.preciseY;
+	this->camera.Zoom(dy < 0 ? 1.1 : 0.9);
 }
 
 void Application::OnFileChanged(const char* filename)
