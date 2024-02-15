@@ -10,6 +10,14 @@ private:
 	Mesh mesh;
 	Matrix44 Modelmatrix;
 public:
+    enum class eRenderMode {
+        POINTCLOUD,
+        WIREFRAME,
+        TRIANGLES,
+        TRIANGLES_INTERPOLATED
+    };
+    eRenderMode mode;
+
     Entity();  //Identity matrix constructor
 
     Entity(const Matrix44& Modelmatrix);// Constructor with a  model matrix

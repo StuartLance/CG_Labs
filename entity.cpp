@@ -7,22 +7,26 @@
 Entity::Entity() {
     Matrix44 Modelmatrix;
     Mesh mesh;
+    mode = eRenderMode::TRIANGLES_INTERPOLATED;
 }
 
 Entity::Entity(const Matrix44& Modelmatrix) {
     this->Modelmatrix = Modelmatrix;
     Mesh mesh;
+    mode = eRenderMode::TRIANGLES_INTERPOLATED;
 }
 
 Entity::Entity(const Matrix44& Modelmatrix, const Mesh& mesh) {
     this->Modelmatrix = Modelmatrix;
     this->mesh = mesh;
+    mode = eRenderMode::TRIANGLES_INTERPOLATED;
 }
 
 //If no matrix is passed, the entity will have an identity matrix
 Entity::Entity(const Mesh& mesh) {
 	this->mesh = mesh;
 	this->Modelmatrix.SetIdentity();
+    mode = eRenderMode::TRIANGLES_INTERPOLATED;
 }
 
 // Destructor
@@ -160,17 +164,38 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
         Vector3 screenPos1 = Vector3((clipPos1.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + clipPos1.y) * 0.5f * (framebuffer->height - 1), clipPos1.z);
         Vector3 screenPos2 = Vector3((clipPos2.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + clipPos2.y) * 0.5f * (framebuffer->height - 1), clipPos2.z);
 
-
-        //Chnage wireframe to filled triangle
+        if (mode == eRenderMode::POINTCLOUD)
+        {
+			// Draw the vertices of the mesh
+			framebuffer->SetPixelSafe(screenPos0.x, screenPos0.y, wireframeColor);
+			framebuffer->SetPixelSafe(screenPos1.x, screenPos1.y, wireframeColor);
+			framebuffer->SetPixelSafe(screenPos2.x, screenPos2.y, wireframeColor);
+		}
+        else if (mode == eRenderMode::WIREFRAME)
+        {
+			// Draw the wireframe of the mesh
+			framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
+			framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
+			framebuffer->DrawLineDDA(screenPos2.x, screenPos2.y, screenPos0.x, screenPos0.y, wireframeColor);
+		}
+        else if (mode == eRenderMode::TRIANGLES)
+        {
+			// Draw the filled triangle
+			framebuffer->DrawTriangle(screenPos0.GetVector2(), screenPos1.GetVector2(), screenPos2.GetVector2(), wireframeColor, true, wireframeColor);
+		}
+        else if (mode == eRenderMode::TRIANGLES_INTERPOLATED)
+        {
+			// Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
+			framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE);
+		}
+        //Change to wireframe render
         //framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
         //framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
         //framebuffer->DrawLineDDA(screenPos2.x, screenPos2.y, screenPos0.x, screenPos0.y, wireframeColor);
 
-        // Draw the filled triangle
-        //framebuffer->DrawTriangle(screenPos0.GetVector2(), screenPos1.GetVector2(), screenPos2.GetVector2(), wireframeColor, true, wireframeColor);
-
+        
         // Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
-        framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE);
+        //framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE);
 
 
     }
