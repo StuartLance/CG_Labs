@@ -49,6 +49,6 @@ public:
     const Matrix44& GetModelMatrix() const;
     const Mesh& GetMesh() const;
 
-    void Render(Image* framebuffer, Camera* camera, FloatImage* zBuffer);
+    void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor, FloatImage* zBuffer);
 
 };

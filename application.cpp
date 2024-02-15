@@ -19,6 +19,8 @@ Application::Application(const char* caption, int width, int height)
 	this->keystate = SDL_GetKeyboardState(nullptr);
 
 	this->framebuffer.Resize(w, h);
+	// ADd zBuffer
+	this->zBuffer.Resize(w, h);
 }
 
 Application::~Application()
@@ -67,17 +69,17 @@ void Application::Init(void)
 	//Set the entity model matrices to identity
 	Matrix44 modelLee;
 	modelLee.SetIdentity();
-	modelLee.Translate(0.3, 0.3, 0.3);
+	modelLee.Translate(0.0, -0.3, -0.3);
 	this->Lee.SetModelMatrix(modelLee);
 	
 	
-	this->Cleo.SetModelMatrix(Matrix44());
-	this->Anna.SetModelMatrix(Matrix44());
+	//this->Cleo.SetModelMatrix(Matrix44());
+	//this->Anna.SetModelMatrix(Matrix44());
 
 	//Set the entity meshes
 	this->Lee.SetMesh(this->meshLee);
-	this->Cleo.SetMesh(this->meshCleo);
-	this->Anna.SetMesh(this->meshAnna);
+	//this->Cleo.SetMesh(this->meshCleo);
+	//this->Anna.SetMesh(this->meshAnna);
 }
 
 // Render one frame
@@ -87,8 +89,11 @@ void Application::Render(void)
 	// Set background color to black
 	framebuffer.Fill(Color::BLACK);
 
+	// Set the zBuffer to max float
+	zBuffer.Fill(FLT_MAX);
+
 	// Render the entities
-	Lee.Render(&framebuffer, &camera, Color::WHITE);
+	Lee.Render(&framebuffer, &camera, Color::WHITE, &zBuffer);
 	//Cleo.Render(&framebuffer, &camera, Color::RED);
 	//Anna.Render(&framebuffer, &camera, Color::BLUE);
 
@@ -118,6 +123,8 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 	// KEY CODES: https://wiki.libsdl.org/SDL2/SDL_Keycode
 	switch (event.keysym.sym) {
 	case SDLK_ESCAPE: exit(0); break; // ESC key, kill the app
+
+		// LAB 2
 		
 	case SDLK_o:  camera.SetOrthographic(-1, window_width / (float)window_height, window_height / (float)window_width, -1, 0.1f, 10000.0f); 
 		this->cam = 0;
@@ -129,6 +136,7 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 	case SDLK_n:  this->current_property = NEAR; break;
 	case SDLK_f:  this->current_property = FAR; break;
 	case SDLK_v:  this->current_property = FOV; break;
+
 
 
 	case SDLK_PLUS:
@@ -162,7 +170,15 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 		}
 		break;
 		
-		
+	/* LAB 3 -
+		“C”	Toggle(activate / deactivate) between PLAIN COLOR / INTERPOLATED vertex colors. i.e. use Color::WHITE or the interpolated color
+		“Z”	Toggle between OCCLUSIONS and NO OCCLUSIONS
+		“T”	Toggle between USE MESH TEXTURE and USE PLAIN COLOR colors
+	*/
+
+
+
+
 	}
 }
 

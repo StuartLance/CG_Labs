@@ -62,6 +62,9 @@ public:
 	// CPU Global framebuffer
 	Image framebuffer;
 
+	// CPU GLobal z-Buffer
+	FloatImage zBuffer;
+
 	// Constructor and main methods
 	Application(const char* caption, int width, int height);
 	~Application();
