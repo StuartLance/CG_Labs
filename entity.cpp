@@ -127,7 +127,8 @@ const Mesh& Entity::GetMesh() const {
     b) Project each of the world space vertices to clip space positions using your current camera
     c) Before drawing each of the triangle lines, convert the clip space positions to screen space using the framebuffer width and height.
 */
-void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor) {
+
+void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor, FloatImage* zBuffer) {
     const std::vector<Vector3>& vertices = mesh.GetVertices();
 
     for (size_t i = 0; i < vertices.size(); i += 3) {
@@ -155,39 +156,38 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
             continue;
         }
 
-        // Convert clip space positions to screen space. Clip space is between -1 and 1, screen space is between [0, width] and [0, height]
-        // So we need to add 1 to the x and y coordinates and multiply by 0.5 widths to get the screen space coordinates
-        // We also need to flip the y coordinate because the screen space origin is at the top left corner
-
-        // LAB 2 Slide 30: x:[0, W-1], y:[0, H-1]
-        Vector3 screenPos0 = Vector3((clipPos0.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + clipPos0.y) * 0.5f * (framebuffer->height - 1), clipPos0.z);
-        Vector3 screenPos1 = Vector3((clipPos1.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + clipPos1.y) * 0.5f * (framebuffer->height - 1), clipPos1.z);
-        Vector3 screenPos2 = Vector3((clipPos2.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + clipPos2.y) * 0.5f * (framebuffer->height - 1), clipPos2.z);
+        // Convert clip space positions to screen space
+        Vector3 screenPos0 = Vector3((clipPos0.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f - clipPos0.y) * 0.5f * (framebuffer->height - 1), clipPos0.z);
+        Vector3 screenPos1 = Vector3((clipPos1.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f - clipPos1.y) * 0.5f * (framebuffer->height - 1), clipPos1.z);
+        Vector3 screenPos2 = Vector3((clipPos2.x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f - clipPos2.y) * 0.5f * (framebuffer->height - 1), clipPos2.z);
 
         if (mode == eRenderMode::POINTCLOUD)
         {
-			// Draw the vertices of the mesh
-			framebuffer->SetPixelSafe(screenPos0.x, screenPos0.y, wireframeColor);
-			framebuffer->SetPixelSafe(screenPos1.x, screenPos1.y, wireframeColor);
-			framebuffer->SetPixelSafe(screenPos2.x, screenPos2.y, wireframeColor);
-		}
+            // Draw the vertices of the mesh
+            framebuffer->SetPixelSafe(screenPos0.x, screenPos0.y, wireframeColor);
+            framebuffer->SetPixelSafe(screenPos1.x, screenPos1.y, wireframeColor);
+            framebuffer->SetPixelSafe(screenPos2.x, screenPos2.y, wireframeColor);
+        }
         else if (mode == eRenderMode::WIREFRAME)
         {
-			// Draw the wireframe of the mesh
-			framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
-			framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
-			framebuffer->DrawLineDDA(screenPos2.x, screenPos2.y, screenPos0.x, screenPos0.y, wireframeColor);
-		}
+            // Draw the wireframe of the mesh
+            framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
+            framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
+            framebuffer->DrawLineDDA(screenPos2.x, screenPos2.y, screenPos0.x, screenPos0.y, wireframeColor);
+        }
         else if (mode == eRenderMode::TRIANGLES)
         {
-			// Draw the filled triangle
-			framebuffer->DrawTriangle(screenPos0.GetVector2(), screenPos1.GetVector2(), screenPos2.GetVector2(), wireframeColor, true, wireframeColor);
-		}
+            // Draw the filled triangle
+            framebuffer->DrawTriangle(screenPos0.GetVector2(), screenPos1.GetVector2(), screenPos2.GetVector2(), wireframeColor, true, wireframeColor);
+        }
         else if (mode == eRenderMode::TRIANGLES_INTERPOLATED)
         {
-			// Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
-			framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE);
-		}
+            // Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
+            framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE, zBuffer);
+        }
+    }
+}
+
         //Change to wireframe render
         //framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);
         //framebuffer->DrawLineDDA(screenPos1.x, screenPos1.y, screenPos2.x, screenPos2.y, wireframeColor);
