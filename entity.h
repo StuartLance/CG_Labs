@@ -5,20 +5,6 @@
 #include "camera.h"
 #include "image.h"
 
-
-/* Create a struct containing all the information needed to raster a triangle (e.g. sTriangleInfo):
-       3 Vertices
-       3 UVs
-       3 Colors
-       A pointer to an Image, the texture
- */
-struct sTriangleInfo {
-    Vector3 vertices[3];
-    Vector2 uvs[3];
-    Color colors[3];
-    class Image* texture;
-};
-
 class Entity {
 private:
 	Mesh mesh;
@@ -30,12 +16,10 @@ public:
         TRIANGLES,
         TRIANGLES_INTERPOLATED
     };
+
+    bool occlusion = true;
     eRenderMode mode;
-
-   
-    sTriangleInfo TrInfo;
-    
-
+    Image* texture;
 
     Entity();  //Identity matrix constructor
 
@@ -64,13 +48,16 @@ public:
 
     void SetModelMatrix(const Matrix44& Modelmatrix);
     void SetMesh(const Mesh& mesh);
+    void SetTexture(Image* texture);
     void SetRenderMode(eRenderMode mode);
-    void SetTexture(class Image* texture);
+    void SetOcclusion(bool occlusion);
 
     const Matrix44& GetModelMatrix() const;
     const Mesh& GetMesh() const;
-    const class Image* GetTexture() const;
+    const Image* GetTexture() const;
+    eRenderMode GetRenderMode() const;
+    bool GetOcclusion() const;
 
-    void Entity::Render(class Image* framebuffer, class Camera* camera, const Color& wireframeColor, class FloatImage* zBuffer);
+    void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor, FloatImage* zBuffer);
 
 };

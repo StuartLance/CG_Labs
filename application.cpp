@@ -25,6 +25,7 @@ Application::Application(const char* caption, int width, int height)
 
 Application::~Application()
 {
+	delete this->textureLee;
 }
 
 void Application::Init(void)
@@ -72,6 +73,18 @@ void Application::Init(void)
 	modelLee.Translate(0.0, -0.3, -0.3);
 	this->Lee.SetModelMatrix(modelLee);
 	
+	this->textureLee = new Image();
+	this->textureLee->LoadTGA("lee_normal.tga", true);
+	this->Lee.SetTexture(textureLee);
+
+	if (Lee.GetTexture() == textureLee) {
+		std::cout << "Texture set successfully on the entity." << std::endl;
+	}
+	else {
+		std::cout << "Failed to set texture on the entity." << std::endl;
+	}
+
+	//this->Lee.SetTexture(nullptr);
 	
 	//this->Cleo.SetModelMatrix(Matrix44());
 	//this->Anna.SetModelMatrix(Matrix44());
@@ -80,18 +93,6 @@ void Application::Init(void)
 	this->Lee.SetMesh(this->meshLee);
 	//this->Cleo.SetMesh(this->meshCleo);
 	//this->Anna.SetMesh(this->meshAnna);
-
-	//Load textures from file
-	this->textureLee.LoadTGA("lee_normal.tga", false);
-	this->Lee.SetTexture(&textureLee);
-
-	if (Lee.GetTexture() == &textureLee) {
-		std::cout << "Texture set successfully on the entity." << std::endl;
-	}
-	else {
-		std::cout << "Failed to set texture on the entity." << std::endl;
-	}
-
 }
 
 // Render one frame
@@ -188,10 +189,43 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 		“T”	Toggle between USE MESH TEXTURE and USE PLAIN COLOR colors
 	*/
 
+	case SDLK_z: 
+		if (Lee.GetOcclusion() == true) {
+		Lee.SetOcclusion(false);
+	}
+		else {
+		Lee.SetOcclusion(true);
+	}
+	break;
 
+	case SDLK_c: 
+		// Cycle through all 4 modes
+		if (Lee.GetRenderMode() == Entity::eRenderMode::TRIANGLES_INTERPOLATED) {
+			Lee.SetRenderMode(Entity::eRenderMode::POINTCLOUD);
+		}
+		else if (Lee.GetRenderMode() == Entity::eRenderMode::POINTCLOUD) {
+			Lee.SetRenderMode(Entity::eRenderMode::WIREFRAME);
+		}
+		else if (Lee.GetRenderMode() == Entity::eRenderMode::WIREFRAME) {
+			Lee.SetRenderMode(Entity::eRenderMode::TRIANGLES);
+		}
+		else if (Lee.GetRenderMode() == Entity::eRenderMode::TRIANGLES) {
+			Lee.SetRenderMode(Entity::eRenderMode::TRIANGLES_INTERPOLATED);
+		}
+		break;
 
+	case SDLK_t: 
+		if (Lee.GetTexture() == nullptr) {
+			Lee.SetTexture(textureLee);
+		}
+		else {
+			Lee.SetTexture(nullptr);
+		}
+		break;
 
 	}
+
+
 }
 
 void Application::OnMouseButtonDown( SDL_MouseButtonEvent event )
