@@ -18,6 +18,21 @@ public:
     };
     eRenderMode mode;
 
+    /* Create a struct containing all the information needed to raster a triangle (e.g. sTriangleInfo):
+        3 Vertices
+        3 UVs
+        3 Colors
+        A pointer to an Image, the texture
+    */
+
+    struct sTriangleInfo {
+		Vector3 vertices[3];
+		Vector2 uvs[3];
+		Color colors[3];
+		Image* texture;
+    } TrInfo;
+
+
     Entity();  //Identity matrix constructor
 
     Entity(const Matrix44& Modelmatrix);// Constructor with a  model matrix
@@ -45,6 +60,8 @@ public:
 
     void SetModelMatrix(const Matrix44& Modelmatrix);
     void SetMesh(const Mesh& mesh);
+    void SetRenderMode(eRenderMode mode);
+    void SetTexture(Image* texture);
 
     const Matrix44& GetModelMatrix() const;
     const Mesh& GetMesh() const;

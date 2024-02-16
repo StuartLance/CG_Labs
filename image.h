@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "framework.h"
+#include "entity.h"
 
 //remove unsafe warnings
 #ifndef _CRT_SECURE_NO_WARNINGS
@@ -69,6 +70,7 @@ public:
 	void UpdateParticles(float dt);
 	*/
 
+	
 	Color* pixels;
 
 	// Constructors
@@ -122,7 +124,7 @@ public:
 
 	void DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor);
 
-	void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* zbuffer);
+	void DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* zbuffer);
 
 	//Vector3 BarycentricCoordinates(const Vector2& p, const Vector3& p0, const Vector3& p1, const Vector3& p2);
 

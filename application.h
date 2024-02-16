@@ -36,6 +36,7 @@ public:
 
 	Entity Lee; // Declare entity as a member variable
 	Mesh meshLee; // Declare mesh as a member variable
+	Image textureLee; // Declare texture as a member variable
 
 	Entity Cleo; // Declare entity as a member variable
 	Mesh meshCleo; // Declare mesh as a member variable

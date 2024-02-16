@@ -433,19 +433,19 @@ void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const
 	https://www.tutorialspoint.com/z-buffer-or-depth-buffer-method-in-cplusplus
 */
 
-void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* zbuffer) {
+void Image::DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* zbuffer) {
 	//Create table
 	std::vector<Cell> table(height);
 	//Update table with the min and max x values of the triangle
-	ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
-	ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
-	ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
+	ScanLineDDA(triangle.vertices[0].x, triangle.vertices[0].y, triangle.vertices[1].x, triangle.vertices[1].y, table);
+	ScanLineDDA(triangle.vertices[1].x, triangle.vertices[1].y, triangle.vertices[2].x, triangle.vertices[2].y, table);
+	ScanLineDDA(triangle.vertices[0].x, triangle.vertices[0].y, triangle.vertices[2].x, triangle.vertices[2].y, table);
 
 	//m transforms the barycentric coordinates to the screen space
 	Matrix44 m;
 	// USE ROW MAJOR, NOT COLUMN MAJOR!!!!
-	m.M[0][0] = p0.x; m.M[1][0] = p1.x; m.M[2][0] = p2.x;
-	m.M[0][1] = p0.y; m.M[1][1] = p1.y; m.M[2][1] = p2.y;
+	m.M[0][0] = triangle.vertices[0].x; m.M[1][0] = triangle.vertices[1].x; m.M[2][0] = triangle.vertices[2].x;
+	m.M[0][1] = triangle.vertices[0].y; m.M[1][1] = triangle.vertices[1].y; m.M[2][1] = triangle.vertices[2].y;
 	m.M[0][2] = 1; m.M[1][2] = 1; m.M[2][2] = 1;
 
 	// Inverse gives the barycentric coordinates
@@ -475,14 +475,20 @@ void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const
 				bCoords = bCoords / sum;
 
 				// Interpolate the z value using the barycentric coordinates
-				float z = bCoords.x * p0.z + bCoords.y * p1.z + bCoords.z * p2.z;
+				float z = bCoords.x * triangle.vertices[0].z + bCoords.y * triangle.vertices[1].z + bCoords.z * triangle.vertices[2].z;
+
+
+				// Check that i, j are within width and height
+				if (i < 0 || i >= height || j < 0 || j >= width) continue;
+				// Stops the program from crashing if the pixel is outside the image
+				
 
 				// Compare the z value of the pixel with the z value of the zbuffer
 				if (z < zbuffer->GetPixel(j, i)) {
 					//Update the zbuffer
 					zbuffer->SetPixel(j, i, z);
 					// Interpolate the color
-					c = c0 * bCoords.x + c1 * bCoords.y + c2 * bCoords.z;
+					c = triangle.color[0] * bCoords.x + triangle.color[1] * bCoords.y + triangle.color[2] * bCoords.z;
 
 					//Set the pixel to the calculated color
 					SetPixelSafe(j, i, c);

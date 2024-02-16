@@ -80,6 +80,10 @@ void Application::Init(void)
 	this->Lee.SetMesh(this->meshLee);
 	//this->Cleo.SetMesh(this->meshCleo);
 	//this->Anna.SetMesh(this->meshAnna);
+
+	//Load textures from file
+	this->textureLee.LoadTGA("lee_normal.tga", false);
+	this->Lee.SetTexture(&textureLee);
 }
 
 // Render one frame
