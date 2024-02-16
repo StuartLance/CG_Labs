@@ -446,7 +446,7 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* 
 	// USE ROW MAJOR, NOT COLUMN MAJOR!!!!
 	m.M[0][0] = triangle.vertices[0].x; m.M[1][0] = triangle.vertices[1].x; m.M[2][0] = triangle.vertices[2].x;
 	m.M[0][1] = triangle.vertices[0].y; m.M[1][1] = triangle.vertices[1].y; m.M[2][1] = triangle.vertices[2].y;
-	m.M[0][2] = 1; m.M[1][2] = 1; m.M[2][2] = 1;
+	m.M[0][2] = 1;						m.M[1][2] = 1;						m.M[2][2] = 1;
 
 	// Inverse gives the barycentric coordinates
 	m.Inverse();
@@ -488,7 +488,7 @@ void Image::DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* 
 					//Update the zbuffer
 					zbuffer->SetPixel(j, i, z);
 					// Interpolate the color
-					c = triangle.color[0] * bCoords.x + triangle.color[1] * bCoords.y + triangle.color[2] * bCoords.z;
+					c = triangle.colors[0] * bCoords.x + triangle.colors[1] * bCoords.y + triangle.colors[2] * bCoords.z;
 
 					//Set the pixel to the calculated color
 					SetPixelSafe(j, i, c);

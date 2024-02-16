@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <iostream>
 #include "framework.h"
-#include "entity.h"
 
 //remove unsafe warnings
 #ifndef _CRT_SECURE_NO_WARNINGS
@@ -123,6 +122,8 @@ public:
 	void ScanLineDDA(int x0, int y0, int x1, int y1, std::vector<Cell>& table);
 
 	void DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor);
+
+	// Can't include entity.h here, CIRCULAR DEPENDENCY
 
 	void DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* zbuffer);
 

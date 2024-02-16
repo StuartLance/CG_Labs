@@ -84,6 +84,14 @@ void Application::Init(void)
 	//Load textures from file
 	this->textureLee.LoadTGA("lee_normal.tga", false);
 	this->Lee.SetTexture(&textureLee);
+
+	if (Lee.GetTexture() == &textureLee) {
+		std::cout << "Texture set successfully on the entity." << std::endl;
+	}
+	else {
+		std::cout << "Failed to set texture on the entity." << std::endl;
+	}
+
 }
 
 // Render one frame

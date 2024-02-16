@@ -9,7 +9,8 @@ Entity::Entity() {
     Mesh mesh;
     mode = eRenderMode::TRIANGLES_INTERPOLATED;
 
-    TrInfo.texture = nullptr; // Set texture to nullptr if no mesh is loaded
+
+    this->TrInfo.texture = nullptr; // Set texture to nullptr if no mesh is loaded
 
 }
 
@@ -18,7 +19,7 @@ Entity::Entity(const Matrix44& Modelmatrix) {
     Mesh mesh;
     mode = eRenderMode::TRIANGLES_INTERPOLATED;
 
-    TrInfo.texture = nullptr; // Set texture to nullptr if no mesh is loaded
+    this->TrInfo.texture = nullptr; // Set texture to nullptr if no mesh is loaded
 }
 
 Entity::Entity(const Matrix44& Modelmatrix, const Mesh& mesh) {
@@ -125,7 +126,7 @@ void Entity::SetRenderMode(eRenderMode mode) {
 }
 
 void Entity::SetTexture(Image* texture) {
-	TrInfo.texture = texture;
+	this->TrInfo.texture = texture;
 }
 
 //      GETTERS
@@ -136,6 +137,10 @@ const Matrix44& Entity::GetModelMatrix() const {
 
 const Mesh& Entity::GetMesh() const {
     return mesh;
+}
+
+const Image* Entity::GetTexture() const {
+	return TrInfo.texture;
 }
 
 /*
@@ -152,22 +157,22 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
 
     for (size_t i = 0; i < vertices.size(); i += 3) {
         // Get the vertices of the current triangle
-        TrInfo.vertices[0] = vertices[i];
-        TrInfo.vertices[1] = vertices[i + 1];
-        TrInfo.vertices[2] = vertices[i + 2];
+        this->TrInfo.vertices[0] = vertices[i];
+        this->TrInfo.vertices[1] = vertices[i + 1];
+        this->TrInfo.vertices[2] = vertices[i + 2];
 
         // Transform vertices from local space to world space
-        TrInfo.vertices[0] = Modelmatrix * TrInfo.vertices[0];
-        TrInfo.vertices[1] = Modelmatrix * TrInfo.vertices[1];
-        TrInfo.vertices[2] = Modelmatrix * TrInfo.vertices[2];
+        this->TrInfo.vertices[0] = Modelmatrix * this->TrInfo.vertices[0];
+        this->TrInfo.vertices[1] = Modelmatrix * this->TrInfo.vertices[1];
+        this->TrInfo.vertices[2] = Modelmatrix * this->TrInfo.vertices[2];
 
         // Project vertices to clip space. `negZ` will be true if the vertex is behind the camera, so we can skip rendering it
         bool negZ0, negZ1, negZ2;
 
         // Project vertices to clip space with the current camera
-        TrInfo.vertices[0] = camera->ProjectVector(TrInfo.vertices[0], negZ0);
-        TrInfo.vertices[1] = camera->ProjectVector(TrInfo.vertices[1], negZ1);
-        TrInfo.vertices[2] = camera->ProjectVector(TrInfo.vertices[2], negZ2);
+        this->TrInfo.vertices[0] = camera->ProjectVector(this->TrInfo.vertices[0], negZ0);
+        this->TrInfo.vertices[1] = camera->ProjectVector(this->TrInfo.vertices[1], negZ1);
+        this->TrInfo.vertices[2] = camera->ProjectVector(this->TrInfo.vertices[2], negZ2);
 
         // Check if any vertex is outside the camera frustum
         if (negZ0 || negZ1 || negZ2) {
@@ -180,56 +185,56 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
         // We also DON'T need to flip the y coordinate because the screen space origin is at the BOTTOM left corner, not the TOP left corner
 
         // LAB 2 Slide 30: x:[0, W-1], y:[0, H-1]
-        TrInfo.vertices[0] = Vector3((TrInfo.vertices[0].x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + TrInfo.vertices[0].y) * 0.5f * (framebuffer->height - 1), TrInfo.vertices[0].z);
-        TrInfo.vertices[1] = Vector3((TrInfo.vertices[1].x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + TrInfo.vertices[1].y) * 0.5f * (framebuffer->height - 1), TrInfo.vertices[1].z);
-        TrInfo.vertices[2] = Vector3((TrInfo.vertices[2].x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + TrInfo.vertices[2].y) * 0.5f * (framebuffer->height - 1), TrInfo.vertices[2].z);
+        this->TrInfo.vertices[0] = Vector3((this->TrInfo.vertices[0].x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + this->TrInfo.vertices[0].y) * 0.5f * (framebuffer->height - 1), this->TrInfo.vertices[0].z);
+        this->TrInfo.vertices[1] = Vector3((this->TrInfo.vertices[1].x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + this->TrInfo.vertices[1].y) * 0.5f * (framebuffer->height - 1), this->TrInfo.vertices[1].z);
+        this->TrInfo.vertices[2] = Vector3((this->TrInfo.vertices[2].x + 1.0f) * 0.5f * (framebuffer->width - 1), (1.0f + this->TrInfo.vertices[2].y) * 0.5f * (framebuffer->height - 1), this->TrInfo.vertices[2].z);
 
 
         if (mode == eRenderMode::POINTCLOUD)
         {
 			// Draw the vertices of the mesh
-			framebuffer->SetPixelSafe(TrInfo.vertices[0].x, TrInfo.vertices[0].y, wireframeColor);
-			framebuffer->SetPixelSafe(TrInfo.vertices[1].x, TrInfo.vertices[1].y, wireframeColor);
-			framebuffer->SetPixelSafe(TrInfo.vertices[2].x, TrInfo.vertices[2].y, wireframeColor);
+			framebuffer->SetPixelSafe(this->TrInfo.vertices[0].x, this->TrInfo.vertices[0].y, wireframeColor);
+			framebuffer->SetPixelSafe(this->TrInfo.vertices[1].x, this->TrInfo.vertices[1].y, wireframeColor);
+			framebuffer->SetPixelSafe(this->TrInfo.vertices[2].x, this->TrInfo.vertices[2].y, wireframeColor);
 		}
         else if (mode == eRenderMode::WIREFRAME)
         {
 			// Draw the wireframe of the mesh
-			framebuffer->DrawLineDDA(TrInfo.vertices[0].x, TrInfo.vertices[0].y, TrInfo.vertices[1].x, TrInfo.vertices[1].y, wireframeColor);
-			framebuffer->DrawLineDDA(TrInfo.vertices[1].x, TrInfo.vertices[1].y, TrInfo.vertices[2].x, TrInfo.vertices[2].y, wireframeColor);
-			framebuffer->DrawLineDDA(TrInfo.vertices[2].x, TrInfo.vertices[2].y, TrInfo.vertices[0].x, TrInfo.vertices[0].y, wireframeColor);
+			framebuffer->DrawLineDDA(this->TrInfo.vertices[0].x, this->TrInfo.vertices[0].y, this->TrInfo.vertices[1].x, this->TrInfo.vertices[1].y, wireframeColor);
+			framebuffer->DrawLineDDA(this->TrInfo.vertices[1].x, this->TrInfo.vertices[1].y, this->TrInfo.vertices[2].x, this->TrInfo.vertices[2].y, wireframeColor);
+			framebuffer->DrawLineDDA(this->TrInfo.vertices[2].x, this->TrInfo.vertices[2].y, this->TrInfo.vertices[0].x, this->TrInfo.vertices[0].y, wireframeColor);
 		}
         else if (mode == eRenderMode::TRIANGLES)
         {
 			// Draw the filled triangle
-			framebuffer->DrawTriangle(TrInfo.vertices[0].GetVector2(), TrInfo.vertices[1].GetVector2(), TrInfo.vertices[2].GetVector2(), wireframeColor, true, wireframeColor);
+			framebuffer->DrawTriangle(this->TrInfo.vertices[0].GetVector2(), this->TrInfo.vertices[1].GetVector2(), this->TrInfo.vertices[2].GetVector2(), wireframeColor, true, wireframeColor);
 		}
         else if (mode == eRenderMode::TRIANGLES_INTERPOLATED)
         {
             // Convert texture coordinates from 0-1 range to 0 - width-1 and 0 - height-1 range
-            TrInfo.uvs[0] = uvs[i];
-            TrInfo.uvs[1] = uvs[i + 1];
-            TrInfo.uvs[2] = uvs[i + 2];
+            this->TrInfo.uvs[0] = uvs[i];
+            this->TrInfo.uvs[1] = uvs[i + 1];
+            this->TrInfo.uvs[2] = uvs[i + 2];
 
-            TrInfo.uvs[0].x = TrInfo.uvs[0].x * (TrInfo.texture->width - 1);
-            TrInfo.uvs[0].y = TrInfo.uvs[0].y * (TrInfo.texture->height - 1);
+            this->TrInfo.uvs[0].x = this->TrInfo.uvs[0].x * (this->TrInfo.texture->width - 1);
+            this->TrInfo.uvs[0].y = this->TrInfo.uvs[0].y * (this->TrInfo.texture->height - 1);
 
-            TrInfo.uvs[1].x = TrInfo.uvs[1].x * (TrInfo.texture->width - 1);
-            TrInfo.uvs[1].y = TrInfo.uvs[1].y * (TrInfo.texture->height - 1);
+            this->TrInfo.uvs[1].x = this->TrInfo.uvs[1].x * (this->TrInfo.texture->width - 1);
+            this->TrInfo.uvs[1].y = this->TrInfo.uvs[1].y * (this->TrInfo.texture->height - 1);
 
-            TrInfo.uvs[2].x = TrInfo.uvs[2].x * (TrInfo.texture->width - 1);
-            TrInfo.uvs[2].y = TrInfo.uvs[2].y * (TrInfo.texture->height - 1);
+            this->TrInfo.uvs[2].x = this->TrInfo.uvs[2].x * (this->TrInfo.texture->width - 1);
+            this->TrInfo.uvs[2].y = this->TrInfo.uvs[2].y * (this->TrInfo.texture->height - 1);
 
             // Get colour of the vertices from the texture, using the UVs
-            Color c0 = TrInfo.texture->GetPixel(TrInfo.uvs[0].x, TrInfo.uvs[0].y);
-            Color c1 = TrInfo.texture->GetPixel(TrInfo.uvs[1].x, TrInfo.uvs[1].y);
-            Color c2 = TrInfo.texture->GetPixel(TrInfo.uvs[2].x, TrInfo.uvs[2].y);
+            Color c0 = this->TrInfo.texture->GetPixel(this->TrInfo.uvs[0].x, this->TrInfo.uvs[0].y);
+            Color c1 = this->TrInfo.texture->GetPixel(this->TrInfo.uvs[1].x, this->TrInfo.uvs[1].y);
+            Color c2 = this->TrInfo.texture->GetPixel(this->TrInfo.uvs[2].x, this->TrInfo.uvs[2].y);
 
 			// Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
 			
-            if (TrInfo.texture != nullptr)
+            if (this->TrInfo.texture != nullptr)
             {
-				framebuffer->DrawTriangleInterpolated(&TrInfo, zBuffer);
+				framebuffer->DrawTriangleInterpolated(this->TrInfo, zBuffer);
 			}
             else
             {
