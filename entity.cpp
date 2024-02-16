@@ -8,18 +8,24 @@ Entity::Entity() {
     Matrix44 Modelmatrix;
     Mesh mesh;
     mode = eRenderMode::TRIANGLES_INTERPOLATED;
+
+    this->texture = nullptr;
 }
 
 Entity::Entity(const Matrix44& Modelmatrix) {
     this->Modelmatrix = Modelmatrix;
     Mesh mesh;
     mode = eRenderMode::TRIANGLES_INTERPOLATED;
+
+    this->texture = nullptr;
 }
 
 Entity::Entity(const Matrix44& Modelmatrix, const Mesh& mesh) {
     this->Modelmatrix = Modelmatrix;
     this->mesh = mesh;
     mode = eRenderMode::TRIANGLES_INTERPOLATED;
+
+    this->texture = nullptr;
 }
 
 //If no matrix is passed, the entity will have an identity matrix
@@ -27,6 +33,8 @@ Entity::Entity(const Mesh& mesh) {
 	this->mesh = mesh;
 	this->Modelmatrix.SetIdentity();
     mode = eRenderMode::TRIANGLES_INTERPOLATED;
+
+    this->texture = nullptr;
 }
 
 // Destructor
@@ -111,6 +119,16 @@ void Entity::SetMesh(const Mesh& mesh) {
     this->mesh = mesh;
 }
 
+void Entity::SetTexture(Image* texture) {
+	this->texture = texture;
+}
+
+void Entity::SetRenderMode(eRenderMode mode) {
+	this->mode = mode;
+}
+
+
+
 const Matrix44& Entity::GetModelMatrix() const {
     return Modelmatrix;
 }
@@ -129,6 +147,8 @@ const Mesh& Entity::GetMesh() const {
 */
 void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor, FloatImage* zBuffer) {
     const std::vector<Vector3>& vertices = mesh.GetVertices();
+    // Get the UVs of the mesh
+    const std::vector<Vector2>& uvs = mesh.GetUVs();
 
     for (size_t i = 0; i < vertices.size(); i += 3) {
         // Get the vertices of the current triangle
@@ -185,8 +205,38 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeCo
 		}
         else if (mode == eRenderMode::TRIANGLES_INTERPOLATED)
         {
-			// Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
-			framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE, zBuffer);
+
+            if (this->texture != nullptr)
+            {
+             
+                // Convert texture coordinates from 0-1 range to 0 - width-1 and 0 - height-1 range
+                Vector2 uv0 = uvs[i];
+                Vector2 uv1 = uvs[i + 1];
+                Vector2 uv2 = uvs[i + 2];
+
+                uv0.x = uv0.x * (texture->width - 1);
+                uv0.y = uv0.y * (texture->height - 1);
+
+                uv1.x = uv1.x * (texture->width - 1);
+                uv1.y = uv1.y * (texture->height - 1);
+
+                uv2.x = uv2.x * (texture->width - 1);
+                uv2.y = uv2.y * (texture->height - 1);
+
+                // Get colour of vertices from texture, using the texture coordinates
+
+                Color c0 = texture->GetPixel(uv0.x, uv0.y);
+                Color c1 = texture->GetPixel(uv1.x, uv1.y);
+                Color c2 = texture->GetPixel(uv2.x, uv2.y);
+
+			    // Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
+			    framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, c0, c1, c2, zBuffer);
+            }
+            else
+            {
+				// Draw the interpolated triangle with red, green and blue vertices, using new DrawTriangleInterpolated function
+				framebuffer->DrawTriangleInterpolated(screenPos0, screenPos1, screenPos2, Color::RED, Color::GREEN, Color::BLUE, zBuffer);
+			}
 		}
         //Change to wireframe render
         //framebuffer->DrawLineDDA(screenPos0.x, screenPos0.y, screenPos1.x, screenPos1.y, wireframeColor);

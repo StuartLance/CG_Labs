@@ -17,6 +17,7 @@ public:
         TRIANGLES_INTERPOLATED
     };
     eRenderMode mode;
+    Image* texture;
 
     Entity();  //Identity matrix constructor
 
@@ -45,6 +46,8 @@ public:
 
     void SetModelMatrix(const Matrix44& Modelmatrix);
     void SetMesh(const Mesh& mesh);
+    void SetTexture(Image* texture);
+    void SetRenderMode(eRenderMode mode);
 
     const Matrix44& GetModelMatrix() const;
     const Mesh& GetMesh() const;
