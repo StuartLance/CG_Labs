@@ -4,12 +4,28 @@
 #include "mesh.h"
 #include "camera.h"
 #include "image.h"
+#include "shader.h"
 
 class Entity {
 private:
 	Mesh mesh;
 	Matrix44 Modelmatrix;
+    Shader * shader;
 public:
+    enum class eRenderMode {
+        POINTCLOUD,
+        WIREFRAME,
+        TRIANGLES,
+        TRIANGLES_INTERPOLATED
+    };
+
+    bool occlusion = true;
+    eRenderMode mode;
+    Texture* texture;
+    Texture* texture_specular;
+
+    Image* ImgText;
+
     Entity();  //Identity matrix constructor
 
     Entity(const Matrix44& Modelmatrix);// Constructor with a  model matrix
@@ -17,6 +33,8 @@ public:
     Entity(const Matrix44& Modelmatrix, const Mesh& mesh);// Constructor with model matrix and mesh
 
     Entity(const Mesh& mesh);// Constructor with mesh
+
+    Entity(const Matrix44& Modelmatrix, const Mesh& mesh, Shader* shader);// Constructor with model matrix, mesh and shader
 
     ~Entity(); //Destructor
 
@@ -37,10 +55,24 @@ public:
 
     void SetModelMatrix(const Matrix44& Modelmatrix);
     void SetMesh(const Mesh& mesh);
+    void SetTexture(Texture* texture);
+    void SetTextureSpecular(Texture* texture_specular);
+    void SetRenderMode(eRenderMode mode);
+    void SetOcclusion(bool occlusion);
+    void SetShader(Shader* shader);
 
     const Matrix44& GetModelMatrix() const;
     const Mesh& GetMesh() const;
+    const Shader* GetShader() const;
+    const Texture* GetTexture() const;
+    const Texture* GetTextureSpecular() const;
+    eRenderMode GetRenderMode() const;
+    bool GetOcclusion() const;
 
-    void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor);
+
+
+    void Entity::Render(Camera* camera);
+
+    void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor, FloatImage* zBuffer);
 
 };

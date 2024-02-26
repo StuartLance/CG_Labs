@@ -48,6 +48,9 @@ public:
 	void Move(Vector3 delta);
 	void Rotate(float angle, const Vector3& axis);
 
+	void Orbit(float angle, const Vector3& axis);
+	void Zoom(float distance);
+
 	// Transform a local camera vector to world coordinates
 	Vector3 GetLocalVector(const Vector3& v);
 

@@ -31,11 +31,20 @@ public:
 
 	int cam = 1;
 
+	enum {a, b, c, d, e, f};
+	int current_task = 1;
+	int current_subtask = a;
+	bool change_task = false;
+	int current_show = 0;
+
 	int current_property = 0;
 	//Declare 3 entities and 3 meshes
 
 	Entity Lee; // Declare entity as a member variable
 	Mesh meshLee; // Declare mesh as a member variable
+	Texture* textureLee; // Declare texture as a member variable
+	Texture* textureLeeSpecular; // Declare texture as a member variable
+
 
 	Entity Cleo; // Declare entity as a member variable
 	Mesh meshCleo; // Declare mesh as a member variable
@@ -61,6 +70,9 @@ public:
 
 	// CPU Global framebuffer
 	Image framebuffer;
+
+	// CPU GLobal z-Buffer
+	FloatImage zBuffer;
 
 	// Constructor and main methods
 	Application(const char* caption, int width, int height);
