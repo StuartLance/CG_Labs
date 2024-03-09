@@ -10,6 +10,8 @@
 #include "mesh.h"
 #include "entity.h"
 #include "camera.h"
+#include "material.h"
+
 
 #define NEAR 1
 #define FAR 2
@@ -37,13 +39,31 @@ public:
 	bool change_task = false;
 	int current_show = 0;
 
+	bool Pbool = false; //Phong or Gourand
+	int spec_or_normal = 0; //Specular or Normal
+
+	float flags[3] = { 0, 0, 0 };
+
 	int current_property = 0;
 	//Declare 3 entities and 3 meshes
 
 	Entity Lee; // Declare entity as a member variable
 	Mesh meshLee; // Declare mesh as a member variable
-	Texture* textureLee; // Declare texture as a member variable
-	Texture* textureLeeSpecular; // Declare texture as a member variable
+	Texture* texture = new Texture();
+	Texture* textureLee = new Texture(); // Declare texture as a member variable
+	Texture* textureLeeSpecular = new Texture(); // Declare texture as a member variable
+
+	Shader* GShader; //Gourand Shader
+
+	Material* material; // Declare material as a member variable
+
+	Shader* PShader; //Phong Shader
+
+	sUniformData uniData; // Declare uniform data as a member variable
+
+	sLight lights[2];	// Declare lights as a member variable
+
+	Vector3 Ia; //Ambient light
 
 
 	Entity Cleo; // Declare entity as a member variable

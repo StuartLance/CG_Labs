@@ -180,11 +180,19 @@ Entity::eRenderMode Entity::GetRenderMode() const {
 bool Entity::GetOcclusion() const {
 	return occlusion;
 }
-
+/*
 void Entity::Render(Camera* camera) {
     Matrix44 ViewMatrix = camera->GetViewProjectionMatrix();
     shader->SetMatrix44("u_model", Modelmatrix);
     shader->SetMatrix44("u_viewprojection", ViewMatrix);
+    mesh.Render();
+}
+*/
+void Entity::Render(Camera* camera, sUniformData uniformData) {
+    Matrix44 vpm = camera->GetViewProjectionMatrix();
+    uniformData.modelMatrix = Modelmatrix;
+    uniformData.viewProjectionMatrix = vpm;
+    material.Enable(uniformData);
     mesh.Render();
 }
 

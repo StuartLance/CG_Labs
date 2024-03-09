@@ -102,6 +102,15 @@ void Application::Init(void)
 	//this->Anna.SetMesh(this->meshAnna);
 
 	*/
+
+	//Set camera position and target
+	camera.LookAt(Vector3(0, 0, 5), Vector3(0, 0, 0), Vector3(0, 1, 0));
+
+	//Set the projection matrix to perspective
+	camera.SetPerspective(45, window_width / (float)window_height, 0.1f, 10000.0f);
+
+	//Set the projection matrix to orthographic
+	//camera.SetOrthographic(-10, window_width / (float)window_height, window_height/(float)window_width, -10, 0.1f, 10000.0f);
 	
 
 	glClearColor(1.0, 1.0, 1.0, 0.0);
@@ -111,55 +120,29 @@ void Application::Init(void)
 	quad.CreateQuad();
 
 	// Load the shaders
-
-	// Set the shaders for A-1 to A-6
-	shader[0] = Shader::Get("shaders/A/A-1.vs", "shaders/A/A-1.fs");
-	shader[1] = Shader::Get("shaders/A/A-2.vs", "shaders/A/A-2.fs");
-	shader[2] = Shader::Get("shaders/A/A-3.vs", "shaders/A/A-3.fs");
-	shader[3] = Shader::Get("shaders/A/A-4.vs", "shaders/A/A-4.fs");
-	shader[4] = Shader::Get("shaders/A/A-5.vs", "shaders/A/A-5.fs");
-	shader[5] = Shader::Get("shaders/A/A-6.vs", "shaders/A/A-6.fs");
-
-	// Set the shaders for B-0 to B-6
-	shader[6] = Shader::Get("shaders/B/B-1.vs", "shaders/B/B-1.fs");
-	shader[7] = Shader::Get("shaders/B/B-2.vs", "shaders/B/B-2.fs");
-	shader[8] = Shader::Get("shaders/B/B-3.vs", "shaders/B/B-3.fs");
-	shader[9] = Shader::Get("shaders/B/B-4.vs", "shaders/B/B-4.fs");
-	shader[10] = Shader::Get("shaders/B/B-5.vs", "shaders/B/B-5.fs");
-	shader[11] = Shader::Get("shaders/B/B-6.vs", "shaders/B/B-6.fs");
-
-	// Set the shaders for C-0 to C-2
-	shader[12] = Shader::Get("shaders/C/C-0.vs", "shaders/C/C-0.fs");
-	shader[13] = Shader::Get("shaders/C/C-1.vs", "shaders/C/C-1.fs");
-	shader[14] = Shader::Get("shaders/C/C-2.vs", "shaders/C/C-2.fs");
-
-	// Set the shaders for D-1
-	shader[15] = Shader::Get("shaders/D/D-1.vs", "shaders/D/D-1.fs");
+	
+	GShader = Shader::Get("shaders/gourand.vs", "shaders/gourand.fs");
+	PShader = Shader::Get("shaders/phong.vs", "shaders/phong.fs");
 
 
-	//Check if the shaders have been loaded correctly using a for loop
-	for (int i = 0; i < 6; i++) {
-		if (shader[i] == nullptr) {
-			char err;
-			itoa(i, &err, 10);
-			std::cout << "Error loading the shader" << std::endl;
-			std::cout << err << std::endl;
-			exit(1);
-		}
-	}
-	// Load the texture
-	Texture* texture = new Texture();  // Assuming you have a Texture class
-	if (texture->Load("images/fruits.png")) {
-		std::cout << "Fruits texture loaded" << std::endl;
-	}
-	else {
-		std::cout << "Error loading Fruits image" << std::endl;
+
+	//Check if the shaders have been loaded correctly 
+	if (GShader == nullptr) {
+		std::cout << "Error loading Gouraud Shader" << std::endl;
 		exit(1);
 	}
+	if (PShader == nullptr) {
+		std::cout << "Error loading Phong Shader" << std::endl;
+		exit(1);
+	}
+	
+	
 
-	// Set the texture for the shader
-	//texture->Bind();  
-	//shader[12]->SetTexture("u_texture", texture);
+	// Load the texture
+	this->texture->Load("images/fruits.png");
+	
+	
+	
 	
 	
 
@@ -171,72 +154,75 @@ void Application::Init(void)
 	this->Lee.SetModelMatrix(modelLee);
 
 	this->textureLee = new Texture();
-	this->textureLee->Load("lee_normal.tga", true);
+	this->textureLee->Load("textures/lee_normal.tga", true);
 	this->Lee.SetTexture(textureLee);
 
 	this->textureLeeSpecular = new Texture();
-	this->textureLeeSpecular->Load("lee_color_specular.tga", true);
+	this->textureLeeSpecular->Load("textures/lee_color_specular.tga");
 	this->Lee.SetTextureSpecular(textureLeeSpecular);
 
 	this->Lee.SetMesh(this->meshLee);
 
-	this->Lee.SetShader(shader[15]);
+	material = new Material();
+	material->color_texture = textureLeeSpecular;
+	material->normal_texture = textureLee;
+
+	material->shininess = 100;
+
+	uniData.viewProjectionMatrix = camera.viewprojection_matrix;
+	uniData.flag = Vector3(0.0, 0.0, 0.0);
+
+	Ia = Vector3(0.1, 0.1, 0.1);
+
+	material->shader = GShader;
+
+	//Print all current variables
+	printf("Current task: %d\n", current_task);
+	printf("Current subtask: %d\n", current_subtask);
+	printf("Current show: %d\n", current_show);
+	printf("Current property: %d\n", current_property);
+	printf("Current Pbool: %d\n", Pbool);
+	printf("Current spec_or_normal: %d\n", spec_or_normal);
+	printf("Current cam: %d\n", cam);
+	printf("Current time: %f\n", time);
+	printf("Current window width: %d\n", window_width);
+	printf("Current window height: %d\n", window_height);
+	printf("Current change task: %d\n", change_task);
+	printf("Current Ia: %f\n", Ia.x);
+	printf("Current Ia: %f\n", Ia.y);
+	printf("Current Ia: %f\n", Ia.z);
+	printf("Current flag: %f\n", flags[0]);
+	printf("Current flag: %f\n", flags[1]);
+	printf("Current flag: %f\n", flags[2]);
+	printf("Current light position: %f\n", lights[0].position.x);
+	printf("Current light position: %f\n", lights[0].position.y);
+	printf("Current light position: %f\n", lights[0].position.z);
+	printf("Current light Id: %f\n", lights[0].Id.x);
+	printf("Current light Id: %f\n", lights[0].Id.y);
+	printf("Current light Id: %f\n", lights[0].Id.z);
+	printf("Current light Is: %f\n", lights[0].Is.x);
+	printf("Current light Is: %f\n", lights[0].Is.y);
+	printf("Current light Is: %f\n", lights[0].Is.z);
+	printf("Current light position: %f\n", lights[1].position.x);
+	printf("Current light position: %f\n", lights[1].position.y);
+	printf("Current light position: %f\n", lights[1].position.z);
+	printf("Current light Id: %f\n", lights[1].Id.x);
+	printf("Current light Id: %f\n", lights[1].Id.y);
+	printf("Current light Id: %f\n", lights[1].Id.z);
+	printf("Current light Is: %f\n", lights[1].Is.x);
+	printf("Current light Is: %f\n", lights[1].Is.y);
+	printf("Current light Is: %f\n", lights[1].Is.z);
+	printf("Current shininess: %f\n", material->shininess);
+	printf("Current color_texture: %f\n", material->color_texture);
+	printf("Current normal_texture: %f\n", material->normal_texture);
+	printf("Current shader: %f\n", material->shader);
+	printf("Current modelMatrix: %f\n", uniData.modelMatrix);
 
 
-	/*
-
-	// Set the camera
-	camera.SetPerspective(45, static_cast<float>(framebuffer.width) / static_cast<float>(framebuffer.height), 0.01, 100);
-	Vector3  eye = Vector3(0, 0.5, 1);
-	Vector3 center = Vector3(0.0, 0.0, 0.0);
-	Vector3 up = Vector3(0, 1.0, 0);
-	camera.LookAt(eye, center, up);
-
-	// Load the quad
-	quad.CreateQuad();
-	if (texture->Load("images/fruits.png") == true) {
-		std::cout << "Fruits texture Loaded" << std::endl;
-	}
-	else {
-		std::cout << "Error loading Fruits image" << std::endl;
-	}
-	if (texture2->Load("images/newyork.png") == true) {
-		std::cout << "NY texture Loaded" << std::endl;
-	}
-	else {
-		std::cout << "Error loading NY image" << std::endl;
-	}
-
-
-	//Load the entity
-	shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
 	
-	//Load the mesh
-	Mesh mesh;
-	mesh.LoadOBJ("meshes/lee.obj");
-	//Check if the mesh has been loaded correctly
-	const std::vector<Vector3>& vertices = mesh.GetVertices();
-	if (vertices.size() == 0) {
-		std::cout << "Error loading the mesh" << std::endl;
-		exit(1);
-	}
-	
-	//Set the entity model matrices to identity
-	Matrix44 model;
-	model.SetIdentity();
-	
-	//Set the entity with the mesh and the shader
-	entity = new Entity(model, mesh, shader);
 
-	//Load the texture
-	if (texture3->Load("textures/lee_normal.tga") == true) {
-		std::cout << "Lee texture Loaded" << std::endl;
-	}
-	else {
-		std::cout << "Error loading Lee texture image" << std::endl;
-	}
 
-	*/
+	
 
 	std::cout << "Initiating app..." << std::endl;
 
@@ -263,101 +249,63 @@ void Application::Render(void)
 
 	framebuffer.Render();
 	*/
-	
-
-	
-	if (current_task == 1 || current_task == 2 || current_task == 3) {
-		shader[current_show]->Enable();
-		shader[current_show]->SetFloat("u_time", time);
-		//myQuadShader->SetTexture("u_fruit", my_texture);
-		quad.Render();
-		shader[current_show]->Disable();
-	}
-	if (current_task == 4) {
-
-		//Set camera position and target
-		camera.LookAt(Vector3(0, 0, 5), Vector3(0, 0, 0), Vector3(0, 1, 0));
-
-		//Set the projection matrix to perspective
-		camera.SetPerspective(45, window_width / (float)window_height, 0.1f, 10000.0f);
-
-		//Set the projection matrix to orthographic
-		//camera.SetOrthographic(-10, window_width / (float)window_height, window_height/(float)window_width, -10, 0.1f, 10000.0f);
-
-
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-		shader[current_show]->SetTexture("u_lee", textureLee);
-		Lee.Render(&camera);
-		shader[15]->Disable();
-	}
-
 
 	
 	
-	//shader[current_show]->Enable();
-	//glEnable(GL_DEPTH_TEST);
+	
 	//shader[current_show]->SetFloat("u_time", time);
+	//shader[current_show]->SetFloat("u_ratio", (window_width / window_height)); // Not needed, Don't resize the window
+	//shader[current_show]->SetFloat("u_rotationAngle", 30*DEG2RAD);
+
+	lights[0].Id = Vector3(1, 1, 1);
+	lights[0].Is = Vector3(1, 1, 1);
+	lights[0].position = Vector3(1.5, 1.0, 1.5);
+
+	lights[1].Id = Vector3(1, 1, 1);
+	lights[1].Is = Vector3(1, 1, 1);
+	lights[1].position = Vector3(-1.5, 1.0, 1.5);
+
+	uniData.scenelights[0] = lights[0];
+	uniData.scenelights[1] = lights[1];
+
+	uniData.modelMatrix = Lee.GetModelMatrix();
+	uniData.viewProjectionMatrix = camera.viewprojection_matrix;
+
 
 	
+
+	uniData.Ia = Ia;
+	material->color_texture = textureLeeSpecular;
+	material->normal_texture = textureLee;
+
+	if (Pbool == false) {
+		material->shader = GShader;
+	}
+	else {
+		material->shader = PShader;
+	}
+
+	uniData.flag = { flags[0],flags[1],flags[2]};
+
+	printf("x of flag %f", uniData.flag.x);
+	printf("y of flag %f", uniData.flag.y);
+	printf("z of flag %f", uniData.flag.z);
+
 	
-	//quad.Render(GL_TRIANGLES);
-	//glDisable(GL_DEPTH_TEST);
-	
-	
-	// Clear the framebuffer and the depth buffer
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Draw scene
-	// ...
-
-	// Swap between front and back buffer
-	// This method name changes depending on the platform
-	//SDL_GL_SwapWindow(window);
 
 
+	uniData.cameraPosition = camera.eye;
 
 
-	/*
-	// Enable depth testing for occlusions
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
-	// Z will pass if the Z is LESS or EQUAL to the Z of the pixel
 	glDepthFunc(GL_LEQUAL);
 
-	shader->Enable();
+	//enShader->SetTexture("u_lee", u_lee);
+	Lee.Render(&camera, uniData);
+	Lee.material.shader->Disable();
 
-	// Give the letter for the fragment shader it shoud render
-	shader->SetFloat("u_number", current_subtask);
-
-	//Set uniforms from the quad
-
-	shader->SetFloat("u_ratio", (window_width / window_height));
-	shader->SetFloat("u_time", time);
-	shader->SetTexture("u_texture", texture);
-	shader->SetTexture("u_image", texture2);
-
-
-	//Set texture for the entity
-	shader->SetTexture("u_lee_texture", texture3);
-
-	//Update camara's ratio to aboid deformations
-	camera.SetAspectRatio(static_cast<float>(framebuffer.width) / static_cast<float>(framebuffer.height));
-
-	if (current_task != 4) {
-		quad.Render();
-	}
-	/*
-	else {
-		entity->SetShader(shader);
-		entity->Render(&camera);
-	}
-	*/
-
-	shader[current_show]->Disable();
-
-
+	
 
 }
 

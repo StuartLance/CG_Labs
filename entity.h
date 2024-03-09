@@ -5,6 +5,7 @@
 #include "camera.h"
 #include "image.h"
 #include "shader.h"
+#include "material.h"
 
 class Entity {
 private:
@@ -23,6 +24,7 @@ public:
     eRenderMode mode;
     Texture* texture;
     Texture* texture_specular;
+    Material material;
 
     Image* ImgText;
 
@@ -71,7 +73,7 @@ public:
 
 
 
-    void Entity::Render(Camera* camera);
+    void Entity::Render(Camera* camera, sUniformData uniformData);
 
     void Entity::Render(Image* framebuffer, Camera* camera, const Color& wireframeColor, FloatImage* zBuffer);
 
